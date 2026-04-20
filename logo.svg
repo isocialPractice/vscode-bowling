@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 100">
+  <defs>
+    <radialGradient id="ball" cx="36%" cy="34%" r="64%">
+      <stop offset="0%"   stop-color="#5577ee"/>
+      <stop offset="40%"  stop-color="#2233aa"/>
+      <stop offset="100%" stop-color="#000820"/>
+    </radialGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#0a0e1a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background card -->
+  <rect width="520" height="100" rx="12" fill="url(#bg)"/>
+
+  <!-- ── Bowling ball ── -->
+  <circle cx="52" cy="50" r="28" fill="url(#ball)"/>
+  <ellipse cx="40" cy="38" rx="9" ry="5.5" fill="white" opacity="0.4"
+           transform="rotate(-35 40 38)"/>
+  <circle cx="52" cy="41" r="4.5" fill="#000" opacity="0.7"/>
+  <circle cx="41" cy="48" r="4.5" fill="#000" opacity="0.7"/>
+  <circle cx="55" cy="55" r="4.5" fill="#000" opacity="0.7"/>
+
+  <!-- ── Bowling pin ── -->
+  <!-- pin body -->
+  <ellipse cx="105" cy="64" rx="11" ry="17" fill="#f0ede8"/>
+  <!-- pin neck -->
+  <ellipse cx="105" cy="40" rx="7"  ry="10" fill="#f0ede8"/>
+  <!-- pin cap -->
+  <ellipse cx="105" cy="30" rx="5"  ry="5"  fill="#f0ede8"/>
+  <!-- red outer ring -->
+  <ellipse cx="105" cy="64" rx="11" ry="17" fill="none" stroke="#cc1111" stroke-width="2.5"/>
+  <ellipse cx="105" cy="40" rx="7"  ry="10" fill="none" stroke="#cc1111" stroke-width="2.5"/>
+  <ellipse cx="105" cy="30" rx="5"  ry="5"  fill="none" stroke="#cc1111" stroke-width="2"/>
+  <!-- red neck ring detail -->
+  <ellipse cx="105" cy="50" rx="6.5" ry="3" fill="none" stroke="#cc1111" stroke-width="1.5"/>
+
+  <!-- ── Divider ── -->
+  <line x1="136" y1="18" x2="136" y2="82" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+
+  <!-- ── Text ── -->
+  <!-- "VS Code" small label -->
+  <text x="152" y="38" font-family="'Courier New', monospace" font-size="14"
+        fill="#88aacc" letter-spacing="2">VS CODE</text>
+  <!-- "Bowling" large -->
+  <text x="150" y="74" font-family="'Courier New', monospace" font-size="38"
+        font-weight="bold" fill="#ffffff" letter-spacing="1">Bowling</text>
+  <!-- accent underline -->
+  <rect x="150" y="80" width="200" height="3" rx="1.5" fill="#ffdd44" opacity="0.7"/>
+</svg>

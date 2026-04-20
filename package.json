@@ -1,0 +1,39 @@
+{
+  "name": "vscode-bowling",
+  "displayName": "VS Code Bowling",
+  "description": "Classic arcade bowling game inside VS Code",
+  "version": "0.0.1",
+  "publisher": "isocialPractice",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "bowling.play",
+        "title": "Play Bowling",
+        "category": "Bowling"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "bowling.play",
+        "key": "ctrl+shift+b",
+        "when": "!terminalFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^18.x",
+    "typescript": "^5.3.2"
+  }
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <radialGradient id="ball" cx="36%" cy="34%" r="64%">
+      <stop offset="0%"   stop-color="#5577ee"/>
+      <stop offset="40%"  stop-color="#2233aa"/>
+      <stop offset="100%" stop-color="#000820"/>
+    </radialGradient>
+  </defs>
+  <circle cx="16" cy="16" r="15" fill="url(#ball)"/>
+  <!-- specular highlight -->
+  <ellipse cx="10.5" cy="10.5" rx="4" ry="2.4" fill="white" opacity="0.45"
+           transform="rotate(-35 10.5 10.5)"/>
+  <!-- finger holes -->
+  <circle cx="16" cy="11" r="2.1" fill="#000" opacity="0.72"/>
+  <circle cx="10.5" cy="15" r="2.1" fill="#000" opacity="0.72"/>
+  <circle cx="17.5" cy="17.5" r="2.1" fill="#000" opacity="0.72"/>
+</svg>

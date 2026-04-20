@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 460">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%"   stop-color="#141c30"/>
+      <stop offset="100%" stop-color="#0a0e1a"/>
+    </radialGradient>
+    <radialGradient id="ballGrad" cx="34%" cy="32%" r="66%">
+      <stop offset="0%"   stop-color="#5577ee"/>
+      <stop offset="35%"  stop-color="#2233aa"/>
+      <stop offset="100%" stop-color="#000820"/>
+    </radialGradient>
+    <linearGradient id="laneGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#b08030"/>
+      <stop offset="12%"  stop-color="#cc9c44"/>
+      <stop offset="50%"  stop-color="#e0b858"/>
+      <stop offset="88%"  stop-color="#cc9c44"/>
+      <stop offset="100%" stop-color="#b08030"/>
+    </linearGradient>
+    <linearGradient id="hudGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0d1220"/>
+      <stop offset="100%" stop-color="#080c18"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="860" height="460" fill="url(#bgGrad)"/>
+
+  <!-- ── Lane ── -->
+  <!-- Lane wood (x=195 to x=505, full height) -->
+  <rect x="195" y="10" width="310" height="440" fill="url(#laneGrad)"/>
+  <!-- Wood grain lines -->
+  <g stroke="rgba(140,90,25,0.18)" stroke-width="1">
+    <line x1="210" y1="10" x2="210" y2="450"/>
+    <line x1="225" y1="10" x2="225" y2="450"/>
+    <line x1="240" y1="10" x2="240" y2="450"/>
+    <line x1="255" y1="10" x2="255" y2="450"/>
+    <line x1="270" y1="10" x2="270" y2="450"/>
+    <line x1="285" y1="10" x2="285" y2="450"/>
+    <line x1="300" y1="10" x2="300" y2="450"/>
+    <line x1="315" y1="10" x2="315" y2="450"/>
+    <line x1="330" y1="10" x2="330" y2="450"/>
+    <line x1="345" y1="10" x2="345" y2="450"/>
+    <line x1="360" y1="10" x2="360" y2="450"/>
+    <line x1="375" y1="10" x2="375" y2="450"/>
+    <line x1="390" y1="10" x2="390" y2="450"/>
+    <line x1="405" y1="10" x2="405" y2="450"/>
+    <line x1="420" y1="10" x2="420" y2="450"/>
+    <line x1="435" y1="10" x2="435" y2="450"/>
+    <line x1="450" y1="10" x2="450" y2="450"/>
+    <line x1="465" y1="10" x2="465" y2="450"/>
+    <line x1="480" y1="10" x2="480" y2="450"/>
+    <line x1="495" y1="10" x2="495" y2="450"/>
+  </g>
+
+  <!-- Gutters -->
+  <rect x="195" y="10" width="28" height="440" fill="#1e1206"/>
+  <rect x="477" y="10" width="28" height="440" fill="#1e1206"/>
+  <!-- Gutter dividers -->
+  <line x1="223" y1="10" x2="223" y2="450" stroke="#4a3010" stroke-width="2"/>
+  <line x1="477" y1="10" x2="477" y2="450" stroke="#4a3010" stroke-width="2"/>
+
+  <!-- Lane border -->
+  <rect x="195" y="10" width="310" height="440" fill="none" stroke="#666" stroke-width="2"/>
+
+  <!-- Pin deck highlight -->
+  <rect x="223" y="10" width="254" height="75" fill="rgba(255,255,255,0.06)"/>
+
+  <!-- Approach arrows -->
+  <g fill="rgba(140,90,30,0.55)">
+    <polygon points="270,175 264,192 270,186 276,192"/>
+    <polygon points="295,175 289,192 295,186 301,192"/>
+    <polygon points="350,175 344,192 350,186 356,192" fill="rgba(200,60,60,0.6)"/>
+    <polygon points="405,175 399,192 405,186 411,192"/>
+    <polygon points="430,175 424,192 430,186 436,192"/>
+  </g>
+
+  <!-- Approach dots -->
+  <g fill="rgba(140,90,30,0.7)">
+    <circle cx="270" cy="412" r="3.5"/>
+    <circle cx="295" cy="412" r="3.5"/>
+    <circle cx="325" cy="412" r="3.5"/>
+    <circle cx="350" cy="412" r="3.5"/>
+    <circle cx="375" cy="412" r="3.5"/>
+    <circle cx="405" cy="412" r="3.5"/>
+    <circle cx="430" cy="412" r="3.5"/>
+  </g>
+
+  <!-- Foul line -->
+  <line x1="223" y1="400" x2="477" y2="400" stroke="#cc2222" stroke-width="3"/>
+  <rect x="223" y="400" width="254" height="50" fill="rgba(200,40,40,0.08)"/>
+
+  <!-- Aim guide (dashed) -->
+  <line x1="350" y1="380" x2="350" y2="95"
+        stroke="rgba(255,255,160,0.28)" stroke-width="1.5"
+        stroke-dasharray="5,9"/>
+
+  <!-- ── Pins ── (10-pin triangle, head pin closest to bowler) -->
+  <!-- Row 0 - head pin at y=85 -->
+  <!-- Row 1 - y=112 -->
+  <!-- Row 2 - y=139 -->
+  <!-- Row 3 - y=166 -->
+  <!-- Pin radius = 9, spacing 27px horizontal, 27px vertical -->
+  <!-- Center = 350 -->
+
+  <!-- Helper macro: standing pin at cx,cy -->
+  <!-- Pin shadow, body, outer ring, neck ring -->
+
+  <!-- Row 3 back (4 pins) y=62 -->
+  <g opacity="0.9">
+    <!-- pin 6 x=296 -->
+    <ellipse cx="298" cy="66" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="296" cy="62" r="9" fill="#f0ede8"/>
+    <circle cx="296" cy="62" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="296" cy="62" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+    <!-- pin 7 x=323 -->
+    <ellipse cx="325" cy="66" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="323" cy="62" r="9" fill="#f0ede8"/>
+    <circle cx="323" cy="62" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="323" cy="62" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+    <!-- pin 8 x=350 -->
+    <ellipse cx="352" cy="66" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="350" cy="62" r="9" fill="#f0ede8"/>
+    <circle cx="350" cy="62" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="350" cy="62" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+    <!-- pin 9 x=377 -->
+    <ellipse cx="379" cy="66" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="377" cy="62" r="9" fill="#f0ede8"/>
+    <circle cx="377" cy="62" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="377" cy="62" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+  </g>
+
+  <!-- Row 2 (3 pins) y=89 -->
+  <g opacity="0.95">
+    <ellipse cx="312" cy="93" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="310" cy="89" r="9" fill="#f0ede8"/>
+    <circle cx="310" cy="89" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="310" cy="89" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+
+    <ellipse cx="352" cy="93" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="350" cy="89" r="9" fill="#f0ede8"/>
+    <circle cx="350" cy="89" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="350" cy="89" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+
+    <ellipse cx="392" cy="93" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="390" cy="89" r="9" fill="#f0ede8"/>
+    <circle cx="390" cy="89" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="390" cy="89" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+  </g>
+
+  <!-- Row 1 (2 pins) y=116 -->
+  <g>
+    <ellipse cx="332" cy="120" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="330" cy="116" r="9" fill="#f0ede8"/>
+    <circle cx="330" cy="116" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="330" cy="116" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+
+    <ellipse cx="372" cy="120" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+    <circle cx="370" cy="116" r="9" fill="#f0ede8"/>
+    <circle cx="370" cy="116" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+    <circle cx="370" cy="116" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+  </g>
+
+  <!-- Row 0 - head pin y=143 -->
+  <ellipse cx="352" cy="147" rx="8" ry="4" fill="rgba(0,0,0,0.22)"/>
+  <circle cx="350" cy="143" r="9" fill="#f0ede8"/>
+  <circle cx="350" cy="143" r="9" fill="none" stroke="#cc1111" stroke-width="2.2"/>
+  <circle cx="350" cy="143" r="5"  fill="none" stroke="#cc1111" stroke-width="1.4"/>
+
+  <!-- ── Ball motion trail ── -->
+  <circle cx="350" cy="360" r="3"  fill="rgba(40,80,220,0.08)"/>
+  <circle cx="350" cy="340" r="5"  fill="rgba(40,80,220,0.10)"/>
+  <circle cx="350" cy="318" r="7"  fill="rgba(40,80,220,0.13)"/>
+  <circle cx="350" cy="294" r="9"  fill="rgba(40,80,220,0.16)"/>
+  <circle cx="350" cy="268" r="10" fill="rgba(40,80,220,0.14)"/>
+  <circle cx="350" cy="240" r="11" fill="rgba(40,80,220,0.12)"/>
+
+  <!-- ── Ball ── -->
+  <!-- shadow -->
+  <ellipse cx="354" cy="387" rx="13" ry="7" fill="rgba(0,0,0,0.28)"/>
+  <!-- body -->
+  <circle cx="350" cy="380" r="16" fill="url(#ballGrad)" filter="url(#glow)"/>
+  <!-- specular -->
+  <ellipse cx="343" cy="373" rx="4.5" ry="2.8" fill="white" opacity="0.52"
+           transform="rotate(-35 343 373)"/>
+  <!-- finger holes -->
+  <circle cx="351" cy="372" r="2.2" fill="#000" opacity="0.72"/>
+  <circle cx="345" cy="377" r="2.2" fill="#000" opacity="0.72"/>
+  <circle cx="354" cy="382" r="2.2" fill="#000" opacity="0.72"/>
+
+  <!-- Ball glow ring (READY state) -->
+  <circle cx="350" cy="380" r="22" fill="none"
+          stroke="rgba(80,180,255,0.45)" stroke-width="2.5"/>
+
+  <!-- ── HUD Panel (right) ── -->
+  <rect x="518" y="10" width="116" height="210" rx="8" fill="url(#hudGrad)"
+        stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <!-- FRAME label -->
+  <text x="576" y="32" font-family="'Courier New',monospace" font-size="11"
+        fill="#aaddff" text-anchor="middle" font-weight="bold">FRAME</text>
+  <!-- Frame number -->
+  <text x="576" y="76" font-family="'Courier New',monospace" font-size="44"
+        fill="#ffffff" text-anchor="middle" font-weight="bold">7</text>
+  <!-- BALL label -->
+  <text x="576" y="96" font-family="'Courier New',monospace" font-size="11"
+        fill="#88aacc" text-anchor="middle">BALL 1</text>
+  <!-- divider -->
+  <line x1="528" y1="106" x2="624" y2="106" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <!-- SCORE label -->
+  <text x="576" y="124" font-family="'Courier New',monospace" font-size="11"
+        fill="#ffdd88" text-anchor="middle" font-weight="bold">SCORE</text>
+  <!-- Score value -->
+  <text x="576" y="155" font-family="'Courier New',monospace" font-size="28"
+        fill="#ffffff" text-anchor="middle" font-weight="bold">142</text>
+  <!-- divider -->
+  <line x1="528" y1="165" x2="624" y2="165" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <!-- Control hints -->
+  <text x="576" y="182" font-family="'Courier New',monospace" font-size="9.5"
+        fill="#88ccff" text-anchor="middle" font-weight="bold">← MOUSE →</text>
+  <text x="576" y="196" font-family="'Courier New',monospace" font-size="9"
+        fill="#777" text-anchor="middle">Aim ball</text>
+  <text x="576" y="213" font-family="'Courier New',monospace" font-size="9.5"
+        fill="#ffdd44" text-anchor="middle" font-weight="bold">[SPACE] Hold</text>
+
+  <!-- ── Score card (bottom) ── -->
+  <rect x="10" y="420" width="840" height="30" rx="5"
+        fill="rgba(6,9,18,0.9)" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+  <!-- Frame cells -->
+  <g font-family="'Courier New',monospace" font-size="9" fill="#555" text-anchor="middle">
+    <text x="52"  y="430">1</text>
+    <text x="136" y="430">2</text>
+    <text x="220" y="430">3</text>
+    <text x="304" y="430">4</text>
+    <text x="388" y="430">5</text>
+    <text x="472" y="430">6</text>
+    <text x="556" y="430" fill="#88bbff">7</text>
+    <text x="640" y="430">8</text>
+    <text x="724" y="430">9</text>
+    <text x="808" y="430">10</text>
+  </g>
+  <g font-family="'Courier New',monospace" font-weight="bold" text-anchor="middle">
+    <!-- Frame 1: strike -->
+    <text x="52"  y="443" font-size="12" fill="#ff8833">X</text>
+    <!-- Frame 2: strike -->
+    <text x="136" y="443" font-size="12" fill="#ff8833">X</text>
+    <!-- Frame 3: 7 / -->
+    <text x="214" y="443" font-size="11" fill="#eee">7</text>
+    <text x="228" y="443" font-size="11" fill="#44ff77">/</text>
+    <!-- Frame 4: strike -->
+    <text x="304" y="443" font-size="12" fill="#ff8833">X</text>
+    <!-- Frame 5: 8 1 -->
+    <text x="382" y="443" font-size="11" fill="#eee">8</text>
+    <text x="396" y="443" font-size="11" fill="#eee">1</text>
+    <!-- Frame 6: strike -->
+    <text x="472" y="443" font-size="12" fill="#ff8833">X</text>
+    <!-- Scores -->
+    <text x="52"  y="447" font-size="10" fill="#ddd"> </text>
+  </g>
+  <!-- Score totals -->
+  <g font-family="'Courier New',monospace" font-size="11" font-weight="bold"
+     text-anchor="middle" fill="#cccccc">
+    <text x="52"  y="447">30</text>
+    <text x="136" y="447">57</text>
+    <text x="220" y="447">77</text>
+    <text x="304" y="447">107</text>
+    <text x="388" y="447">116</text>
+    <text x="472" y="447">142</text>
+  </g>
+  <!-- Active frame highlight -->
+  <rect x="514" y="420" width="84" height="30" rx="3"
+        fill="rgba(40,80,200,0.3)" stroke="rgba(80,140,255,0.8)" stroke-width="1.2"/>
+
+  <!-- Frame dividers on score card -->
+  <g stroke="rgba(255,255,255,0.18)" stroke-width="0.7">
+    <line x1="94"  y1="420" x2="94"  y2="450"/>
+    <line x1="178" y1="420" x2="178" y2="450"/>
+    <line x1="262" y1="420" x2="262" y2="450"/>
+    <line x1="346" y1="420" x2="346" y2="450"/>
+    <line x1="430" y1="420" x2="430" y2="450"/>
+    <line x1="514" y1="420" x2="514" y2="450"/>
+    <line x1="598" y1="420" x2="598" y2="450"/>
+    <line x1="682" y1="420" x2="682" y2="450"/>
+    <line x1="766" y1="420" x2="766" y2="450"/>
+  </g>
+
+  <!-- ── Title overlay ── -->
+  <text x="350" y="460" font-family="'Courier New',monospace" font-size="9"
+        fill="rgba(255,255,255,0)" text-anchor="middle">hidden</text>
+
+  <!-- Left label -->
+  <rect x="10" y="10" width="176" height="50" rx="8"
+        fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="98" y="32" font-family="'Courier New',monospace" font-size="11"
+        fill="#88aacc" text-anchor="middle" font-weight="bold">VS CODE</text>
+  <text x="98" y="52" font-family="'Courier New',monospace" font-size="22"
+        fill="#ffffff" text-anchor="middle" font-weight="bold">Bowling</text>
+
+  <!-- HOLD SPACE badge near ball -->
+  <rect x="256" y="395" width="186" height="21" rx="5"
+        fill="rgba(0,0,0,0.62)" stroke="rgba(255,220,50,0.5)" stroke-width="1"/>
+  <text x="349" y="410" font-family="'Courier New',monospace" font-size="11"
+        fill="#ffdd44" text-anchor="middle" font-weight="bold">HOLD [SPACE] to charge</text>
+</svg>
