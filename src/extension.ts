@@ -17,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
             {
                 enableScripts: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'media'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'media')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'assets')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'node_modules'))
                 ],
                 retainContextWhenHidden: true
             }
@@ -29,8 +31,17 @@ export function activate(context: vscode.ExtensionContext) {
         const gameCssUri = panel.webview.asWebviewUri(
             vscode.Uri.file(path.join(context.extensionPath, 'media', 'game.css'))
         );
+        const threeJsUri = panel.webview.asWebviewUri(
+            vscode.Uri.file(path.join(context.extensionPath, 'node_modules', 'three', 'build', 'three.min.js'))
+        );
+        const stlLoaderUri = panel.webview.asWebviewUri(
+            vscode.Uri.file(path.join(context.extensionPath, 'media', 'STLLoader.js'))
+        );
+        const pinStlUri = panel.webview.asWebviewUri(
+            vscode.Uri.file(path.join(context.extensionPath, 'assets', 'BowlingPin.stl'))
+        );
 
-        panel.webview.html = getWebviewContent(panel.webview, gameJsUri, gameCssUri);
+        panel.webview.html = getWebviewContent(panel.webview, gameJsUri, gameCssUri, threeJsUri, stlLoaderUri, pinStlUri);
 
         panel.onDidDispose(() => {
             panel = undefined;
@@ -43,7 +54,10 @@ export function activate(context: vscode.ExtensionContext) {
 function getWebviewContent(
     webview: vscode.Webview,
     gameJsUri: vscode.Uri,
-    gameCssUri: vscode.Uri
+    gameCssUri: vscode.Uri,
+    threeJsUri: vscode.Uri,
+    stlLoaderUri: vscode.Uri,
+    pinStlUri: vscode.Uri
 ): string {
     const nonce = getNonce();
     return `<!DOCTYPE html>
@@ -51,12 +65,18 @@ function getWebviewContent(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; connect-src ${webview.cspSource}; img-src ${webview.cspSource} data: blob:;">
     <link rel="stylesheet" href="${gameCssUri}">
     <title>Bowling</title>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div id="threejs-container"></div>
+    <script nonce="${nonce}" src="${threeJsUri}"></script>
+    <script nonce="${nonce}" src="${stlLoaderUri}"></script>
+    <script nonce="${nonce}">
+        window.PIN_STL_URL = '${pinStlUri}';
+    </script>
     <script nonce="${nonce}" src="${gameJsUri}"></script>
 </body>
 </html>`;

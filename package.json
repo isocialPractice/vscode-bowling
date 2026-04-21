@@ -35,5 +35,8 @@
     "@types/vscode": "^1.85.0",
     "@types/node": "^18.x",
     "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
   }
 }

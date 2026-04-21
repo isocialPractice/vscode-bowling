@@ -301,7 +301,15 @@
 
         frames[currentFrame].rolls.push(thisRoll);
         computeScores();
-        setTimeout(() => advance(totalKnocked), 1400);
+
+        // Play animation on strike or second ball completion
+        const isStrike = (currentBall === 0 && thisRoll === 10);
+        const isSecondBall = (currentBall === 1 && currentFrame < 9);
+        const shouldAnimate = isStrike || isSecondBall;
+        
+        if (shouldAnimate) startBowlingAnimation();
+        const settleDur = (shouldAnimate && bowlingAnim) ? 3500 : 1400;
+        setTimeout(() => advance(totalKnocked), settleDur);
     }
 
     function advance(totalKnocked) {
@@ -1071,12 +1079,380 @@
         drawFlash();
         drawScorecard();
         drawHUD();
+        drawBowlingAnimation();
         drawStartScreen();
 
         if (state === S.ROLLING)  updateBall();
         updatePins();
 
         requestAnimationFrame(loop);
+    }
+
+    // ─── Three.js Bowling Animation ──────────────────────────────────────────────
+    let THREE = null;
+    let threeScene = null;
+    let threeCamera = null;
+    let threeRenderer = null;
+    let threeBall = null;
+    let threePinObjects = [];
+    let bowlingAnim = null;
+    let threeContainer = null;
+    let isThreeReady = false;
+    let pinGeometry = null;
+    let pinMaterial = null;
+
+    // Pin formation positions (X, Z) - Y is up
+    const PIN_POSITIONS = [
+        [0, -4],           // Head pin
+        [-0.3, -4.5], [0.3, -4.5],
+        [-0.6, -5], [0, -5], [0.6, -5],
+        [-0.9, -5.5], [-0.3, -5.5], [0.3, -5.5], [0.9, -5.5]
+    ];
+
+    function initThreeJS() {
+        try {
+            THREE = window.THREE;
+            if (!THREE) {
+                console.warn('Three.js not available');
+                return;
+            }
+
+            threeContainer = document.getElementById('threejs-container');
+            if (!threeContainer) {
+                console.warn('Three.js container not found');
+                return;
+            }
+
+            // Scene
+            threeScene = new THREE.Scene();
+            threeScene.fog = new THREE.Fog(0x000000, 8, 20);
+
+            // Camera
+            threeCamera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+            threeCamera.position.set(0, 2.5, 6);
+            threeCamera.lookAt(0, 0, -2);
+
+            // Renderer
+            threeRenderer = new THREE.WebGLRenderer({ 
+                alpha: true, 
+                antialias: true 
+            });
+            threeRenderer.setSize(W, H);
+            threeRenderer.shadowMap.enabled = true;
+            threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            threeRenderer.setClearColor(0x000000, 0);
+            threeContainer.appendChild(threeRenderer.domElement);
+
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            threeScene.add(ambient);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight.position.set(2, 8, 1);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 2048;
+            mainLight.shadow.mapSize.height = 2048;
+            mainLight.shadow.camera.near = 0.5;
+            mainLight.shadow.camera.far = 50;
+            mainLight.shadow.camera.left = -5;
+            mainLight.shadow.camera.right = 5;
+            mainLight.shadow.camera.top = 5;
+            mainLight.shadow.camera.bottom = -8;
+            threeScene.add(mainLight);
+
+            const fillLight = new THREE.DirectionalLight(0x8899ff, 0.3);
+            fillLight.position.set(-3, 3, 2);
+            threeScene.add(fillLight);
+
+            // Bowling lane
+            const laneGeo = new THREE.PlaneGeometry(2.5, 12);
+            const laneMat = new THREE.MeshStandardMaterial({
+                color: 0xb8885a,
+                roughness: 0.8,
+                metalness: 0.1
+            });
+            const lane = new THREE.Mesh(laneGeo, laneMat);
+            lane.rotation.x = -Math.PI / 2;
+            lane.position.y = 0;
+            lane.receiveShadow = true;
+            threeScene.add(lane);
+
+            // Gutters
+            const gutterGeo = new THREE.PlaneGeometry(0.3, 12);
+            const gutterMat = new THREE.MeshStandardMaterial({
+                color: 0x222222,
+                roughness: 0.9
+            });
+            const gutterL = new THREE.Mesh(gutterGeo, gutterMat);
+            gutterL.rotation.x = -Math.PI / 2;
+            gutterL.position.set(-1.4, -0.05, 0);
+            threeScene.add(gutterL);
+            
+            const gutterR = new THREE.Mesh(gutterGeo, gutterMat);
+            gutterR.rotation.x = -Math.PI / 2;
+            gutterR.position.set(1.4, -0.05, 0);
+            threeScene.add(gutterR);
+
+            // Load bowling pin STL
+            loadPinModel();
+
+            isThreeReady = true;
+            console.log('Three.js initialized successfully');
+
+        } catch (err) {
+            console.error('Three.js init error:', err);
+        }
+    }
+
+    function loadPinModel() {
+        if (!THREE || !THREE.STLLoader) {
+            console.warn('STLLoader not available');
+            return;
+        }
+
+        const loader = new THREE.STLLoader();
+        const pinUrl = window.PIN_STL_URL;
+        
+        if (!pinUrl) {
+            console.warn('Pin STL URL not provided');
+            return;
+        }
+
+        loader.load(
+            pinUrl,
+            function(geometry) {
+                // Center and scale the geometry
+                geometry.computeBoundingBox();
+                const bbox = geometry.boundingBox;
+                const center = new THREE.Vector3();
+                bbox.getCenter(center);
+                geometry.translate(-center.x, -bbox.min.y, -center.z);
+                
+                // Scale to appropriate size (about 0.38 units tall)
+                const height = bbox.max.y - bbox.min.y;
+                const scale = 0.38 / height;
+                geometry.scale(scale, scale, scale);
+                
+                pinGeometry = geometry;
+                pinMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xf5f5f0,
+                    roughness: 0.5,
+                    metalness: 0.05
+                });
+                
+                console.log('Bowling pin STL loaded successfully');
+            },
+            function(xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(error) {
+                console.error('Error loading pin STL:', error);
+            }
+        );
+    }
+
+    function startBowlingAnimation() {
+        if (!isThreeReady || !THREE) {
+            console.warn('Three.js not ready');
+            return;
+        }
+
+        // Clear previous objects
+        if (threeBall) {
+            threeScene.remove(threeBall);
+            threeBall = null;
+        }
+        threePinObjects.forEach(pin => threeScene.remove(pin.group));
+        threePinObjects = [];
+
+        // Create bowling ball - classic shiny blue/black marbled look
+        const ballGeo = new THREE.SphereGeometry(0.22, 32, 32);
+        const ballMat = new THREE.MeshStandardMaterial({
+            color: 0x1144aa,
+            roughness: 0.15,
+            metalness: 0.7,
+            emissive: 0x001133,
+            emissiveIntensity: 0.3
+        });
+        threeBall = new THREE.Mesh(ballGeo, ballMat);
+        threeBall.position.set(0, 0.22, 5);
+        threeBall.castShadow = true;
+        threeBall.receiveShadow = true;
+        threeScene.add(threeBall);
+
+        // Create bowling pins using STL model or fallback to procedural
+        PIN_POSITIONS.forEach(([px, pz], i) => {
+            const pinGroup = new THREE.Group();
+            
+            if (pinGeometry && pinMaterial) {
+                // Use loaded STL model
+                const pinMesh = new THREE.Mesh(pinGeometry, pinMaterial.clone());
+                pinMesh.castShadow = true;
+                pinMesh.receiveShadow = true;
+                pinGroup.add(pinMesh);
+            } else {
+                // Fallback to procedural geometry
+                const bodyGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.38, 16);
+                const bodyMat = new THREE.MeshStandardMaterial({
+                    color: 0xf5f5f0,
+                    roughness: 0.5,
+                    metalness: 0.05
+                });
+                const pinBody = new THREE.Mesh(bodyGeo, bodyMat);
+                pinBody.position.y = 0.19;
+                pinBody.castShadow = true;
+                pinBody.receiveShadow = true;
+                pinGroup.add(pinBody);
+                
+                // Red stripe at neck
+                const stripeGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.04, 16);
+                const stripeMat = new THREE.MeshStandardMaterial({
+                    color: 0xdd1111,
+                    roughness: 0.6
+                });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.position.y = 0.25;
+                pinGroup.add(stripe);
+            }
+            
+            pinGroup.position.set(px, 0, pz);
+            threeScene.add(pinGroup);
+            
+            threePinObjects.push({
+                group: pinGroup,
+                velocity: new THREE.Vector3(0, 0, 0),
+                angularVel: new THREE.Vector3(0, 0, 0),
+                fallen: false
+            });
+        });
+
+        // Show container
+        threeContainer.style.display = 'block';
+        threeContainer.style.opacity = '0';
+
+        bowlingAnim = {
+            startTime: performance.now(),
+            duration: 3500,
+            ballHitPins: false
+        };
+    }
+
+    function drawBowlingAnimation() {
+        if (!bowlingAnim || !isThreeReady) return;
+
+        const elapsed = performance.now() - bowlingAnim.startTime;
+        const progress = elapsed / bowlingAnim.duration;
+
+        if (progress >= 1) {
+            threeContainer.style.display = 'none';
+            bowlingAnim = null;
+            return;
+        }
+
+        // Fade in/out
+        const fade = elapsed < 250 ? elapsed / 250
+                   : elapsed > bowlingAnim.duration - 300 ? (bowlingAnim.duration - elapsed) / 300
+                   : 1;
+        threeContainer.style.opacity = fade.toString();
+
+        // Ball animation - rolls down lane
+        const ballProgress = Math.min(elapsed / 1200, 1);
+        const ease = 1 - Math.pow(1 - ballProgress, 2);
+        threeBall.position.z = 5 - ease * 9.5;
+        threeBall.rotation.x += 0.18; // Rolling
+
+        // Hit pins when ball reaches them
+        if (ballProgress >= 0.95 && !bowlingAnim.ballHitPins) {
+            bowlingAnim.ballHitPins = true;
+            
+            // Apply force to pins based on distance
+            threePinObjects.forEach((pin, i) => {
+                const pinPos = pin.group.position;
+                const dx = pinPos.x - threeBall.position.x;
+                const dz = pinPos.z - threeBall.position.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                
+                // Pin gets hit if close enough
+                if (dist < 0.6) {
+                    const force = Math.max(0, 0.6 - dist) * 20;
+                    const dirX = dx / dist;
+                    const dirZ = dz / dist;
+                    
+                    pin.velocity.set(
+                        dirX * force * 0.06 + (Math.random() - 0.5) * 0.02,
+                        0.15 + Math.random() * 0.05,
+                        dirZ * force * 0.06
+                    );
+                    
+                    pin.angularVel.set(
+                        (Math.random() - 0.5) * 0.15,
+                        (Math.random() - 0.5) * 0.1,
+                        (Math.random() - 0.5) * 0.15
+                    );
+                    
+                    pin.fallen = true;
+                }
+            });
+        }
+
+        // Physics for fallen pins
+        if (bowlingAnim.ballHitPins) {
+            threePinObjects.forEach(pin => {
+                if (!pin.fallen) return;
+                
+                // Gravity
+                pin.velocity.y -= 0.015;
+                
+                // Update position
+                pin.group.position.add(pin.velocity);
+                
+                // Update rotation
+                pin.group.rotation.x += pin.angularVel.x;
+                pin.group.rotation.y += pin.angularVel.y;
+                pin.group.rotation.z += pin.angularVel.z;
+                
+                // Friction/damping
+                pin.velocity.x *= 0.98;
+                pin.velocity.z *= 0.98;
+                pin.angularVel.multiplyScalar(0.97);
+                
+                // Floor collision
+                if (pin.group.position.y < 0.05) {
+                    pin.group.position.y = 0.05;
+                    pin.velocity.y *= -0.3; // Bounce
+                }
+            });
+        }
+
+        // Render
+        threeRenderer.render(threeScene, threeCamera);
+
+        // Draw overlay text
+        const cx = (PLAY_LEFT + PLAY_RIGHT) / 2;
+        if (progress > 0.15 && progress < 0.85) {
+            const textFade = Math.sin((progress - 0.15) / 0.7 * Math.PI);
+            ctx.save();
+            ctx.globalAlpha = fade * textFade * 0.9;
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 24px Arial';
+            ctx.shadowColor = '#ffcc00';
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = '#ffe44d';
+            ctx.fillText('★ FRAME COMPLETE ★', cx, LANE_TOP + 32);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+    }
+
+    // Initialize Three.js when available
+    if (typeof window !== 'undefined') {
+        setTimeout(() => {
+            if (window.THREE) {
+                initThreeJS();
+            } else {
+                console.warn('Three.js not loaded yet');
+            }
+        }, 200);
     }
 
     // ─── Boot ─────────────────────────────────────────────────────────────────────
