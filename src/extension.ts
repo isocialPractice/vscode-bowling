@@ -18,8 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
                 enableScripts: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'media')),
-                    vscode.Uri.file(path.join(context.extensionPath, 'assets')),
-                    vscode.Uri.file(path.join(context.extensionPath, 'node_modules'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'assets'))
                 ],
                 retainContextWhenHidden: true
             }
@@ -32,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.Uri.file(path.join(context.extensionPath, 'media', 'game.css'))
         );
         const threeJsUri = panel.webview.asWebviewUri(
-            vscode.Uri.file(path.join(context.extensionPath, 'node_modules', 'three', 'build', 'three.min.js'))
+            vscode.Uri.file(path.join(context.extensionPath, 'media', 'three.min.js'))
         );
         const stlLoaderUri = panel.webview.asWebviewUri(
             vscode.Uri.file(path.join(context.extensionPath, 'media', 'STLLoader.js'))
