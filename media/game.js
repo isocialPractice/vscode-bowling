@@ -81,8 +81,9 @@
 
     // ─── State Variables ─────────────────────────────────────────────────────────
     let state = S.IDLE;
-    let pins  = [];
-    let ball  = null;
+    let pins     = [];
+    let ball     = null;
+    let ballPath = [];   // {x,y} canvas coords recorded each rolling frame
 
     // Scoring — initialize with 10 empty frames so drawScorecard works before startGame()
     let frames            = Array.from({ length: 10 }, () => ({ rolls: [], score: null }));
@@ -177,6 +178,7 @@
 
     // ─── Throw ───────────────────────────────────────────────────────────────────
     function throwBall(speed, dirBias, spin) {
+        ballPath = [];
         ball = {
             x: aimX,
             y: LANE_BOT - BALL_R - 8,
@@ -198,6 +200,7 @@
 
         ball.trail.push({ x: ball.x, y: ball.y });
         if (ball.trail.length > 22) ball.trail.shift();
+        ballPath.push({ x: ball.x, y: ball.y });
 
         ball.vx += ball.spin * 0.035;  // hook effect accumulates
         ball.x  += ball.vx;
@@ -283,6 +286,8 @@
     function endRoll() {
         if (state !== S.ROLLING) return;
         state = S.SETTLING;
+        // Capture ball info before nulling — needed for animation
+        const gutterSide = (ball && ball.inGutter) ? (ball.x < W / 2 ? 'left' : 'right') : null;
         ball  = null;
 
         const totalKnocked = 10 - standingCount();
@@ -306,8 +311,18 @@
         const isStrike = (currentBall === 0 && thisRoll === 10);
         const isSecondBall = (currentBall === 1 && currentFrame < 9);
         const shouldAnimate = isStrike || isSecondBall;
-        
-        if (shouldAnimate) startBowlingAnimation();
+
+        if (shouldAnimate) {
+            // Capture which pins were standing before this roll and which fell this roll.
+            // p.swept = true means the pin was knocked in a prior ball of this frame.
+            const animPinState = {
+                standingBefore:  pins.filter(p => !p.swept).map(p => p.id),
+                knockedThisRoll: pins.filter(p => !p.standing && !p.swept).map(p => p.id),
+                ballPath:        ballPath.slice(),
+                gutterSide
+            };
+            startBowlingAnimation(animPinState);
+        }
         const settleDur = (shouldAnimate && bowlingAnim) ? 3500 : 1400;
         setTimeout(() => advance(totalKnocked), settleDur);
     }
@@ -1251,7 +1266,7 @@
         );
     }
 
-    function startBowlingAnimation() {
+    function startBowlingAnimation(animPinState) {
         if (!isThreeReady || !THREE) {
             console.warn('Three.js not ready');
             return;
@@ -1265,6 +1280,29 @@
         threePinObjects.forEach(pin => threeScene.remove(pin.group));
         threePinObjects = [];
 
+        const standingSet = new Set(animPinState ? animPinState.standingBefore : [0,1,2,3,4,5,6,7,8,9]);
+        const knockedSet  = new Set(animPinState ? animPinState.knockedThisRoll : []);
+
+        // Convert recorded 2D ball path to 3D world coords.
+        // Anchors: ball launch Y (LANE_BOT-BALL_R-8) → Z=5, head-pin Y (HEAD_PIN_Y) → Z=-4
+        const ballStartY   = LANE_BOT - BALL_R - 8;
+        const gutterCanvasL = PLAY_LEFT  + BALL_R;  // canvas X when hugging left gutter wall
+        const gutterCanvasR = PLAY_RIGHT - BALL_R;  // canvas X when hugging right gutter wall
+        const gutterSide3D  = animPinState ? animPinState.gutterSide : null;
+        let ballPath3D = null;
+        if (animPinState && animPinState.ballPath && animPinState.ballPath.length > 1) {
+            const raw = animPinState.ballPath.map(p => {
+                let x = (p.x - PINS_CX) / (PLAY_W / 2) * 1.25;
+                // Remap gutter-wall positions to the actual 3D gutter channel (±1.4)
+                if (gutterSide3D === 'left'  && p.x <= gutterCanvasL + 2) x = -1.4;
+                if (gutterSide3D === 'right' && p.x >= gutterCanvasR - 2) x =  1.4;
+                return { x, z: 5 - (ballStartY - p.y) / (ballStartY - HEAD_PIN_Y) * 9 };
+            });
+            // Trim points that overshoot the back of the lane (-6) so ball stays on deck
+            const trimmed = raw.filter(p => p.z >= -6.0);
+            ballPath3D = trimmed.length > 1 ? trimmed : raw.slice(0, 2);
+        }
+
         // Create bowling ball - classic shiny blue/black marbled look
         const ballGeo = new THREE.SphereGeometry(0.22, 32, 32);
         const ballMat = new THREE.MeshStandardMaterial({
@@ -1275,21 +1313,31 @@
             emissiveIntensity: 0.3
         });
         threeBall = new THREE.Mesh(ballGeo, ballMat);
-        threeBall.position.set(0, 0.22, 5);
+        const startPt = ballPath3D ? ballPath3D[0] : { x: 0, z: 5 };
+        threeBall.position.set(startPt.x, 0.22, startPt.z);
         threeBall.castShadow = true;
         threeBall.receiveShadow = true;
         threeScene.add(threeBall);
 
-        // Create bowling pins using STL model or fallback to procedural
+        // Create only pins that were standing before this roll
         PIN_POSITIONS.forEach(([px, pz], i) => {
+            if (!standingSet.has(i)) return; // Pin was already down — skip it
+
             const pinGroup = new THREE.Group();
-            
+
             if (pinGeometry && pinMaterial) {
                 // Use loaded STL model
                 const pinMesh = new THREE.Mesh(pinGeometry, pinMaterial.clone());
                 pinMesh.castShadow = true;
                 pinMesh.receiveShadow = true;
                 pinGroup.add(pinMesh);
+                // Red neck stripe — pin is 0.38 units tall, neck sits ~63% up
+                const stripeGeo = new THREE.CylinderGeometry(0.063, 0.063, 0.022, 16);
+                const stripeMat = new THREE.MeshStandardMaterial({ color: 0xcc1111, roughness: 0.5 });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.position.y = 0.245;
+                stripe.castShadow = true;
+                pinGroup.add(stripe);
             } else {
                 // Fallback to procedural geometry
                 const bodyGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.38, 16);
@@ -1303,7 +1351,7 @@
                 pinBody.castShadow = true;
                 pinBody.receiveShadow = true;
                 pinGroup.add(pinBody);
-                
+
                 // Red stripe at neck
                 const stripeGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.04, 16);
                 const stripeMat = new THREE.MeshStandardMaterial({
@@ -1314,15 +1362,17 @@
                 stripe.position.y = 0.25;
                 pinGroup.add(stripe);
             }
-            
+
             pinGroup.position.set(px, 0, pz);
             threeScene.add(pinGroup);
-            
+
             threePinObjects.push({
                 group: pinGroup,
                 velocity: new THREE.Vector3(0, 0, 0),
                 angularVel: new THREE.Vector3(0, 0, 0),
-                fallen: false
+                fallen: false,
+                shouldFall: knockedSet.has(i),
+                chainQueued: false
             });
         });
 
@@ -1333,8 +1383,26 @@
         bowlingAnim = {
             startTime: performance.now(),
             duration: 3500,
-            ballHitPins: false
+            ballPath3D,
+            chainQueue: []   // {pin, triggerAt} for chain-reaction pins
         };
+    }
+
+    function triggerPinKnockdown(pin) {
+        const dx = pin.group.position.x - threeBall.position.x;
+        const dz = pin.group.position.z - threeBall.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz) || 0.1;
+        pin.velocity.set(
+            (dx / dist) * 0.06 + (Math.random() - 0.5) * 0.02,
+            0.15 + Math.random() * 0.05,
+            (dz / dist) * 0.06 + (Math.random() - 0.5) * 0.02
+        );
+        pin.angularVel.set(
+            (Math.random() - 0.5) * 0.15,
+            (Math.random() - 0.5) * 0.1,
+            (Math.random() - 0.5) * 0.15
+        );
+        pin.fallen = true;
     }
 
     function drawBowlingAnimation() {
@@ -1355,74 +1423,70 @@
                    : 1;
         threeContainer.style.opacity = fade.toString();
 
-        // Ball animation - rolls down lane
+        // Ball animation - follows the real throw path
         const ballProgress = Math.min(elapsed / 1200, 1);
-        const ease = 1 - Math.pow(1 - ballProgress, 2);
-        threeBall.position.z = 5 - ease * 9.5;
-        threeBall.rotation.x += 0.18; // Rolling
-
-        // Hit pins when ball reaches them
-        if (ballProgress >= 0.95 && !bowlingAnim.ballHitPins) {
-            bowlingAnim.ballHitPins = true;
-            
-            // Apply force to pins based on distance
-            threePinObjects.forEach((pin, i) => {
-                const pinPos = pin.group.position;
-                const dx = pinPos.x - threeBall.position.x;
-                const dz = pinPos.z - threeBall.position.z;
-                const dist = Math.sqrt(dx * dx + dz * dz);
-                
-                // Pin gets hit if close enough
-                if (dist < 0.6) {
-                    const force = Math.max(0, 0.6 - dist) * 20;
-                    const dirX = dx / dist;
-                    const dirZ = dz / dist;
-                    
-                    pin.velocity.set(
-                        dirX * force * 0.06 + (Math.random() - 0.5) * 0.02,
-                        0.15 + Math.random() * 0.05,
-                        dirZ * force * 0.06
-                    );
-                    
-                    pin.angularVel.set(
-                        (Math.random() - 0.5) * 0.15,
-                        (Math.random() - 0.5) * 0.1,
-                        (Math.random() - 0.5) * 0.15
-                    );
-                    
-                    pin.fallen = true;
-                }
-            });
+        const pathData = bowlingAnim.ballPath3D;
+        if (pathData && pathData.length > 1) {
+            const rawIdx = ballProgress * (pathData.length - 1);
+            const i0 = Math.floor(rawIdx);
+            const i1 = Math.min(i0 + 1, pathData.length - 1);
+            const t  = rawIdx - i0;
+            threeBall.position.x = pathData[i0].x + (pathData[i1].x - pathData[i0].x) * t;
+            threeBall.position.z = pathData[i0].z + (pathData[i1].z - pathData[i0].z) * t;
+            // Z-axis lean follows lateral curve
+            if (i0 > 0) {
+                const lateralDelta = pathData[i0].x - pathData[i0 - 1].x;
+                threeBall.rotation.z -= lateralDelta * 0.5;
+            }
+        } else {
+            const ease = 1 - Math.pow(1 - ballProgress, 2);
+            threeBall.position.z = 5 - ease * 9.5;
         }
+        threeBall.rotation.x += 0.18; // Forward roll
 
-        // Physics for fallen pins
-        if (bowlingAnim.ballHitPins) {
+        // Proximity knockdown: pins fall as the ball rolls over them
+        threePinObjects.forEach(pin => {
+            if (!pin.shouldFall || pin.fallen || pin.chainQueued) return;
+            const dx = pin.group.position.x - threeBall.position.x;
+            const dz = pin.group.position.z - threeBall.position.z;
+            if (Math.sqrt(dx * dx + dz * dz) < 0.42) triggerPinKnockdown(pin);
+        });
+
+        // After the ball finishes its path, queue any remaining shouldFall pins
+        // (chain-reaction pins the ball didn't pass directly over) with staggered delays
+        if (ballProgress >= 1.0) {
             threePinObjects.forEach(pin => {
-                if (!pin.fallen) return;
-                
-                // Gravity
-                pin.velocity.y -= 0.015;
-                
-                // Update position
-                pin.group.position.add(pin.velocity);
-                
-                // Update rotation
-                pin.group.rotation.x += pin.angularVel.x;
-                pin.group.rotation.y += pin.angularVel.y;
-                pin.group.rotation.z += pin.angularVel.z;
-                
-                // Friction/damping
-                pin.velocity.x *= 0.98;
-                pin.velocity.z *= 0.98;
-                pin.angularVel.multiplyScalar(0.97);
-                
-                // Floor collision
-                if (pin.group.position.y < 0.05) {
-                    pin.group.position.y = 0.05;
-                    pin.velocity.y *= -0.3; // Bounce
-                }
+                if (!pin.shouldFall || pin.fallen || pin.chainQueued) return;
+                pin.chainQueued = true;
+                const dx = pin.group.position.x - threeBall.position.x;
+                const dz = pin.group.position.z - threeBall.position.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                bowlingAnim.chainQueue.push({ pin, triggerAt: elapsed + 15 + dist * 35 });
             });
         }
+
+        // Fire any queued chain-reaction pins whose delay has elapsed
+        bowlingAnim.chainQueue = bowlingAnim.chainQueue.filter(item => {
+            if (elapsed >= item.triggerAt) { triggerPinKnockdown(item.pin); return false; }
+            return true;
+        });
+
+        // Physics for all fallen pins
+        threePinObjects.forEach(pin => {
+            if (!pin.fallen) return;
+            pin.velocity.y -= 0.015;
+            pin.group.position.add(pin.velocity);
+            pin.group.rotation.x += pin.angularVel.x;
+            pin.group.rotation.y += pin.angularVel.y;
+            pin.group.rotation.z += pin.angularVel.z;
+            pin.velocity.x *= 0.98;
+            pin.velocity.z *= 0.98;
+            pin.angularVel.multiplyScalar(0.97);
+            if (pin.group.position.y < 0.05) {
+                pin.group.position.y = 0.05;
+                pin.velocity.y *= -0.3;
+            }
+        });
 
         // Render
         threeRenderer.render(threeScene, threeCamera);
