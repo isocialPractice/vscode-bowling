@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.Uri.file(path.join(context.extensionPath, 'media', 'STLLoader.js'))
         );
         const pinStlUri = panel.webview.asWebviewUri(
-            vscode.Uri.file(path.join(context.extensionPath, 'assets', 'BowlingPin.stl'))
+            vscode.Uri.file(path.join(context.extensionPath, 'media', 'BowlingPin.stl'))
         );
 
         panel.webview.html = getWebviewContent(panel.webview, gameJsUri, gameCssUri, threeJsUri, stlLoaderUri, pinStlUri);
