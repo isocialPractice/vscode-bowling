@@ -9,11 +9,16 @@
   <link rel="stylesheet" href="media/game.css">
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <div id="threejs-container"></div>
+  <div id="game-shell">
+    <canvas id="gameCanvas"></canvas>
+    <div id="threejs-container"></div>
+  </div>
   <script src="media/three.min.js"></script>
   <script src="media/STLLoader.js"></script>
-  <script>window.PIN_STL_URL = 'media/BowlingPin.stl';</script>
+  <script>
+    window.PIN_STL_URL = 'media/BowlingPin.stl';
+    window.BALL_STL_URL = 'media/BowlingBall.stl';
+  </script>
   <script src="media/game.js"></script>
 </body>
 </html>

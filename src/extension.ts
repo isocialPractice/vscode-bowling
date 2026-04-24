@@ -39,8 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
         const pinStlUri = panel.webview.asWebviewUri(
             vscode.Uri.file(path.join(context.extensionPath, 'media', 'BowlingPin.stl'))
         );
+        const ballStlUri = panel.webview.asWebviewUri(
+            vscode.Uri.file(path.join(context.extensionPath, 'media', 'BowlingBall.stl'))
+        );
 
-        panel.webview.html = getWebviewContent(panel.webview, gameJsUri, gameCssUri, threeJsUri, stlLoaderUri, pinStlUri);
+        panel.webview.html = getWebviewContent(panel.webview, gameJsUri, gameCssUri, threeJsUri, stlLoaderUri, pinStlUri, ballStlUri);
 
         panel.onDidDispose(() => {
             panel = undefined;
@@ -56,7 +59,8 @@ function getWebviewContent(
     gameCssUri: vscode.Uri,
     threeJsUri: vscode.Uri,
     stlLoaderUri: vscode.Uri,
-    pinStlUri: vscode.Uri
+    pinStlUri: vscode.Uri,
+    ballStlUri: vscode.Uri
 ): string {
     const nonce = getNonce();
     return `<!DOCTYPE html>
@@ -69,12 +73,15 @@ function getWebviewContent(
     <title>Bowling</title>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="threejs-container"></div>
+    <div id="game-shell">
+        <canvas id="gameCanvas"></canvas>
+        <div id="threejs-container"></div>
+    </div>
     <script nonce="${nonce}" src="${threeJsUri}"></script>
     <script nonce="${nonce}" src="${stlLoaderUri}"></script>
     <script nonce="${nonce}">
         window.PIN_STL_URL = '${pinStlUri}';
+        window.BALL_STL_URL = '${ballStlUri}';
     </script>
     <script nonce="${nonce}" src="${gameJsUri}"></script>
 </body>

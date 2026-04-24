@@ -68,13 +68,16 @@ Standard 10-frame bowling rules:
 
 - Trackball-style mouse controls with hook physics
 - Ball spin curves the trajectory across the lane
-- 10-pin chain reaction physics
+- Live top-down Three.js gameplay with STL bowling ball and pin models
+- Logical 2D pins drive knockdown, scoring, and deadwood clearing while STL meshes stay visual-only
+- Optional post-turn replay with an angled alley camera, visible replay lane, and a sidebar toggle to turn replays on or off
 - Standard 10-frame scoring with bonus ball support
 - Live scorecard with strike / spare symbols
 - State-aware HUD with control hints
 - Power meter with animated feedback
 - Strike / Spare / Gutter flash messages
 - Fallen pin sweep between throws
+- Frame-complete Three.js replay animation after strikes and completed turns
 - Works in VS Code **and** as a standalone browser page
 
 ---
@@ -96,7 +99,7 @@ npm run compile
 # Press F5 in VS Code
 ```
 
-The game logic lives entirely in `media/game.js` — plain JavaScript, no build step required for the browser version. `src/extension.ts` is only the VS Code WebView host.
+The gameplay logic lives in `media/game.js` as a hybrid Canvas + Three.js renderer. The 2D pin rack remains the authoritative gameplay state for knockdown and scoring, while the STL ball and pin meshes mirror that state for live graphics and the optional post-turn replay, including the replay lane and improved pin carry animation. `src/extension.ts` remains the VS Code WebView host.
 
 ---
 
@@ -107,8 +110,12 @@ vscode-bowling/
 ├── src/
 │   └── extension.ts     VS Code extension entry point
 ├── media/
-│   ├── game.js          Bowling game engine (Canvas 2D)
-│   └── game.css         Styles
+│   ├── game.js          Bowling gameplay, scoring, physics, and Three.js overlay
+│   ├── game.css         Browser and webview styles
+│   ├── BowlingBall.stl  Bowling ball model used in live gameplay
+│   ├── BowlingPin.stl   Bowling pin model used in live gameplay
+│   ├── STLLoader.js     Three.js STL loader
+│   └── three.min.js     Three.js runtime
 ├── index.html           Browser preview entry point
 ├── favicon.svg          Browser favicon
 ├── logo.svg             Project logo
